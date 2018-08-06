@@ -104,8 +104,8 @@ struct sun8i_codec {
 static int sun8i_codec_spk_event(struct snd_soc_dapm_widget *w,
 				 struct snd_kcontrol *k, int event)
 {
-	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
-	struct sun8i_codec *scodec = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *codec = snd_soc_dapm_to_component(w->dapm);
+	struct sun8i_codec *scodec = snd_soc_component_get_drvdata(codec);
 
 	gpiod_set_value_cansleep(scodec->gpio_pa,
 				 !!SND_SOC_DAPM_EVENT_ON(event));
