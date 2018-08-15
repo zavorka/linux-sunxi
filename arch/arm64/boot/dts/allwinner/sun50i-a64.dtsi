@@ -114,7 +114,7 @@
 
 	de: display-engine {
 		compatible = "allwinner,sun50i-a64-display-engine";
-		allwinner,pipelines = <&mixer1>;
+		allwinner,pipelines = <&mixer0>, <&mixer1>;
 		status = "disabled";
 	};
 
@@ -226,7 +226,8 @@
 			ranges = <0 0x1000000 0x400000>;
 
 			display_clocks: clock@0 {
-				compatible = "allwinner,sun50i-a64-de2-clk";
+				compatible = "allwinner,sun50i-h5-de2-clk",
+					     "allwinner,sun50i-a64-de2-clk";
 				reg = <0x0 0x100000>;
 				clocks = <&ccu CLK_DE>,
 					 <&ccu CLK_BUS_DE>;
@@ -327,8 +328,9 @@
 			clocks = <&ccu CLK_BUS_TCON0>, <&ccu CLK_TCON0>;
 			clock-names = "ahb", "tcon-ch0";
 			clock-output-names = "tcon-pixel-clock";
-			resets = <&ccu RST_BUS_TCON0>, <&ccu RST_BUS_LVDS>;
-			reset-names = "lcd", "lvds";
+			resets = <&ccu RST_BUS_TCON0>;
+			reset-names = "lcd";
+			status = "disabled";
 
 			ports {
 				#address-cells = <1>;
