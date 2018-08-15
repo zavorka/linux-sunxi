@@ -289,3 +289,31 @@
 	pinctrl-0 = <&uart3_pins>;
 	status = "okay";
 };
+ 
+&de {
+	status = "okay";
+};
+
+&mixer0 {
+	status = "okay";
+};
+
+&tcon0 {
+	status = "okay";
+};
+
+&dphy {
+	status = "okay";
+};
+
+&dsi {
+	status = "okay";
+
+	panel@0 {
+		compatible = "sharp,ls050t1sx01", "simple-panel";
+		reg = <0>;
+		enable-gpios = <&pio 1 7 GPIO_ACTIVE_HIGH>; /* PB7 */
+		reset-gpios = <&pio 1 5 GPIO_ACTIVE_LOW>; /* PB5 */
+		avdd-supply = <&reg_dldo2>;
+	};
+};

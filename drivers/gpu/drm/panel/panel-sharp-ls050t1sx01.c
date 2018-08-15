@@ -1,4 +1,3 @@
-#include <linux/backlight.h>
 #include <linux/gpio/consumer.h>
 #include <linux/module.h>
 #include <linux/of.h>
@@ -15,9 +14,9 @@ struct sharp_panel {
     struct drm_panel base;
     struct mipi_dsi_device *dsi;
 
-    struct backlight_device *backlight;
     struct regulator *supply;
     struct gpio_desc *reset_gpio;
+    struct gpio_desc *enable_gpio;
 
     bool prepared;
     bool enabled;
@@ -92,10 +91,6 @@ static int sharp_panel_disable(struct drm_panel *panel)
     if (!sharp->enabled)
         return 0;
 
-    if (sharp->backlight) {
-        backlight_disable(sharp->backlight);
-    }
-
     sharp->enabled = false;
 
     return 0;
@@ -147,13 +142,18 @@ static int sharp_panel_prepare(struct drm_panel *panel)
 		msleep(20);
 	}
 
+	if (sharp->enable_gpio) {
+		gpiod_set_value(sharp->enable_gpio, 1);
+		msleep(100);
+	}
+
 	printk("sharp->reset_gpio\n");
 	if (sharp->reset_gpio) {
-		gpiod_set_value(sharp->reset_gpio, 1);
-		msleep(1);
 		gpiod_set_value(sharp->reset_gpio, 0);
-		msleep(1);
+		msleep(20);
 		gpiod_set_value(sharp->reset_gpio, 1);
+		msleep(50);
+		gpiod_set_value(sharp->reset_gpio, 0);
 		msleep(10);
 	}
 
@@ -176,11 +176,12 @@ static int sharp_panel_prepare(struct drm_panel *panel)
 	return 0;
 
 poweroff:
-    if (sharp->supply) {
-	    regulator_disable(sharp->supply);
-    }
+	if (sharp->enable_gpio)
+		gpiod_set_value(sharp->enable_gpio, 0);
+	if (sharp->supply)
+		regulator_disable(sharp->supply);
 	if (sharp->reset_gpio)
-        gpiod_set_value(sharp->reset_gpio, 0);
+		gpiod_set_value(sharp->reset_gpio, 0);
 	return ret;
 }
 
@@ -194,10 +195,6 @@ static int sharp_panel_enable(struct drm_panel *panel)
 
 	if (sharp->enabled)
 		return 0;
-
-	if (sharp->backlight) {
-		backlight_enable(sharp->backlight);
-	}
 
 	sharp->enabled = true;
 
@@ -238,7 +235,7 @@ static int sharp_panel_get_modes(struct drm_panel *panel)
 
     printk("mode->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED\n");
     mode->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
-    drm_mode_p    robed_add(connector, mode);
+    drm_mode_probed_add(connector, mode);
 
     panel->connector->display_info.width_mm = 54;
     panel->connector->display_info.height_mm = 95;
@@ -283,12 +280,15 @@ static int sharp_panel_add(struct sharp_panel *sharp)
         gpiod_set_value(sharp->reset_gpio, 0);
     }
 
-    sharp->backlight = devm_of_find_backlight(dev);
-
-    if (IS_ERR(sharp->backlight)) {
-        dev_err(dev, "cannot get backlight %ld\n", PTR_ERR(sharp->backlight));
-        sharp->backlight = NULL;
+    sharp->enable_gpio = devm_gpiod_get(dev, "enable", GPIOD_OUT_LOW);
+    if (IS_ERR(sharp->enable_gpio)) {
+        dev_err(dev, "cannot get enable-gpios %ld\n",
+                PTR_ERR(sharp->enable_gpio));
+        sharp->enable_gpio = NULL;
+    } else {
+        gpiod_set_value(sharp->enable_gpio, 0);
     }
+
     drm_panel_init(&sharp->base);
     sharp->base.funcs = &sharp_panel_funcs;
     sharp->base.dev = &sharp->dsi->dev;
