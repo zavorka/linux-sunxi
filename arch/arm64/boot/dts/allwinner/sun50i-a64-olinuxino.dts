@@ -52,6 +52,8 @@
 
 	aliases {
 		serial0 = &uart0;
+		serial2 = &uart2;
+		serial3 = &uart3;
 	};
 
 	chosen {
@@ -75,10 +77,6 @@
 	};
 };
 
-&de {
-	status = "okay";
-};
-
 &codec {
         status = "okay";
 };
@@ -91,6 +89,26 @@
         status = "okay";
 };
 
+&de {
+	status = "okay";
+};
+
+&dphy {
+	status = "okay";
+};
+
+&dsi {
+	status = "okay";
+
+	panel@0 {
+		compatible = "sharp,ls050t1sx01", "simple-panel";
+		reg = <0>;
+		enable-gpios = <&pio 1 7 GPIO_ACTIVE_HIGH>; /* PB7 */
+		reset-gpios = <&pio 1 5 GPIO_ACTIVE_LOW>; /* PB5 */
+		avdd-supply = <&reg_dldo2>;
+	};
+};
+
 &hdmi {
 	hdmi-supply = <&reg_dldo1>;
 	status = "okay";
@@ -100,6 +118,10 @@
 	hdmi_out_con: endpoint {
 		remote-endpoint = <&hdmi_con_in>;
 	};
+};
+
+&mixer0 {
+	status = "okay";
 };
 
 &mixer1 {
@@ -268,6 +290,10 @@
                         "Speaker", "LINEOUT";
 };
 
+&tcon0 {
+	status = "okay";
+};
+
 &tcon1 {
 	status = "okay";
 };
@@ -288,32 +314,4 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart3_pins>;
 	status = "okay";
-};
- 
-&de {
-	status = "okay";
-};
-
-&mixer0 {
-	status = "okay";
-};
-
-&tcon0 {
-	status = "okay";
-};
-
-&dphy {
-	status = "okay";
-};
-
-&dsi {
-	status = "okay";
-
-	panel@0 {
-		compatible = "sharp,ls050t1sx01", "simple-panel";
-		reg = <0>;
-		enable-gpios = <&pio 1 7 GPIO_ACTIVE_HIGH>; /* PB7 */
-		reset-gpios = <&pio 1 5 GPIO_ACTIVE_LOW>; /* PB5 */
-		avdd-supply = <&reg_dldo2>;
-	};
 };
