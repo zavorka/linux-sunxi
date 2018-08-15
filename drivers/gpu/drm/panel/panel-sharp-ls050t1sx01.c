@@ -268,14 +268,14 @@ static int sharp_panel_add(struct sharp_panel *sharp)
     sharp->supply = devm_regulator_get(dev, "avdd");
     if (IS_ERR(sharp->supply)) {
         dev_err(dev, "cannot get avdd supply %ld\n", PTR_ERR(sharp->supply));
-        sharp->supply = NULL;
+        return PTR_ERR(sharp->supply);
     }
 
     sharp->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
     if (IS_ERR(sharp->reset_gpio)) {
         dev_err(dev, "cannot get reset-gpios %ld\n",
                 PTR_ERR(sharp->reset_gpio));
-        sharp->reset_gpio = NULL;
+        return PTR_ERR(sharp->reset_gpio);
     } else {
         gpiod_set_value(sharp->reset_gpio, 0);
     }
@@ -284,7 +284,7 @@ static int sharp_panel_add(struct sharp_panel *sharp)
     if (IS_ERR(sharp->enable_gpio)) {
         dev_err(dev, "cannot get enable-gpios %ld\n",
                 PTR_ERR(sharp->enable_gpio));
-        sharp->enable_gpio = NULL;
+        return PTR_ERR(sharp->enable_gpio);
     } else {
         gpiod_set_value(sharp->enable_gpio, 0);
     }
